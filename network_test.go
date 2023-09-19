@@ -110,6 +110,55 @@ func Test_NetworkWithIPAM(t *testing.T) {
 	assert.Equal(t, ipamConfig, foundNetwork.IPAM)
 }
 
+func Test_NetworkWithOptions(t *testing.T) {
+	ctx := context.Background()
+	networkName := "test-network-with-options"
+	optionsConfig := map[string]string{
+		"com.docker.network.driver.mtu":  "1450",
+		"com.docker.network.bridge.name": "test-options",
+	}
+	net, err := GenericNetwork(ctx, GenericNetworkRequest{
+		NetworkRequest: NetworkRequest{
+			Name:           networkName,
+			CheckDuplicate: true,
+			Options:        optionsConfig,
+		},
+	})
+	if err != nil {
+		t.Fatal("cannot create network: ", err)
+	}
+
+	defer func() {
+		_ = net.Remove(ctx)
+	}()
+
+	nginxC, _ := GenericContainer(ctx, GenericContainerRequest{
+		ContainerRequest: ContainerRequest{
+			Image: "nginx",
+			ExposedPorts: []string{
+				"80/tcp",
+			},
+			Networks: []string{
+				networkName,
+			},
+		},
+	})
+	terminateContainerOnEnd(t, ctx, nginxC)
+	nginxC.GetContainerID()
+
+	provider, err := ProviderDocker.GetProvider()
+	if err != nil {
+		t.Fatal("Cannot get Provider")
+	}
+	defer provider.Close()
+
+	foundNetwork, err := provider.GetNetwork(ctx, NetworkRequest{Name: networkName})
+	if err != nil {
+		t.Fatal("Cannot get created network by name")
+	}
+	assert.Equal(t, optionsConfig, foundNetwork.Options)
+}
+
 func Test_MultipleContainersInTheNewNetwork(t *testing.T) {
 	ctx := context.Background()
 

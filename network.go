@@ -38,6 +38,7 @@ type NetworkRequest struct {
 	Labels         map[string]string
 	Attachable     bool
 	IPAM           *network.IPAM
+	Options        map[string]string
 
 	SkipReaper    bool              // Deprecated: The reaper is globally controlled by the .testcontainers.properties file or the TESTCONTAINERS_RYUK_DISABLED environment variable
 	ReaperImage   string            // Deprecated: use WithImageName ContainerOption instead. Alternative reaper registry

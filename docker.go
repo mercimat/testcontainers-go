@@ -1295,6 +1295,7 @@ func (p *DockerProvider) CreateNetwork(ctx context.Context, req NetworkRequest) 
 		Attachable:     req.Attachable,
 		Labels:         req.Labels,
 		IPAM:           req.IPAM,
+		Options:        req.Options,
 	}
 
 	sessionID := testcontainerssession.SessionID()
